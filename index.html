@@ -8,10 +8,10 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#10101a">
-<link rel="manifest" href="manifest.json?v=3">
-<link rel="apple-touch-icon" href="icon.png?v=3">
-<link rel="apple-touch-startup-image" media="screen and (device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="launch_1290x2796.png?v=3">
-<link rel="apple-touch-startup-image" media="screen and (device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="launch_1179x2556.png?v=3">
+<link rel="manifest" href="manifest.json?v=4">
+<link rel="apple-touch-icon" href="icon.png?v=4">
+<link rel="apple-touch-startup-image" media="screen and (device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="launch_1290x2796.png?v=4">
+<link rel="apple-touch-startup-image" media="screen and (device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="launch_1179x2556.png?v=4">
 <title>Mercury</title>
 <script>
 if('serviceWorker' in navigator){
@@ -79,16 +79,16 @@ if('serviceWorker' in navigator){
     <div class="screen active" id="s-home">
       <div id="homeScroller">
         <div id="homeContent">
-          <img src="screens/home_body.png?v=3">
+          <img src="screens/home_body.png?v=4">
           <!-- Insights >, Cards >, Transactions >, Accounts > rows: inert until
                destination shots exist. Row positions in screens/CROP.md -->
         </div>
       </div>
       <div id="homeTopFade"></div><div id="homeBotFade"></div>
       <!-- floating chrome: org pill / icon pill / tab bar. Inert until destination shots exist. -->
-      <div class="glass" id="gL"></div><img class="glyph" id="yL" src="screens/pill_left.png?v=3" alt="">
-      <div class="glass" id="gR"></div><img class="glyph" id="yR" src="screens/pill_right.png?v=3" alt="">
-      <div class="glass" id="gB"></div><img class="glyph" id="yB" src="screens/tabbar.png?v=3" alt="">
+      <div class="glass" id="gL"></div><img class="glyph" id="yL" src="screens/pill_left.png?v=4" alt="">
+      <div class="glass" id="gR"></div><img class="glyph" id="yR" src="screens/pill_right.png?v=4" alt="">
+      <div class="glass" id="gB"></div><img class="glyph" id="yB" src="screens/tabbar.png?v=4" alt="">
     </div>
 
   </div>
@@ -99,7 +99,7 @@ if('serviceWorker' in navigator){
     document.body.style.background = '#10101a';
   });
 
-  const ASSET_V = '?v=3';
+  const ASSET_V = '?v=4';
   const el = id => document.getElementById(id);
   let current = 's-home';
   let navBusy = false;

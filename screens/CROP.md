@@ -11,7 +11,7 @@ Isolated from `ig-prop-site`. Own repo, own URL. Do not copy files back into the
 - Paint out the iOS scroll indicator (grey `(95,95,102)`, x ≈ 1273–1282) before stitching, otherwise it repeats down the page. Rule used: grey pixel in x 1262–1290 whose 28 px to the left are all bg.
 - After any image swap: bump `?v=` everywhere in `index.html` + `manifest.json` **and** `CACHE` in `sw.js` (same number). Reopen the home-screen icon.
 
-## Home (`#s-home`) — current: `v3`, folder `(22)` + glass chrome
+## Home (`#s-home`) — current: `v4`, folder `(22)` + glass chrome · icon from `New folder (9)`
 
 Source folder `(22)` `iCloud Photos from Roeniel Carter\IMG_1509…1512.PNG`. Filename order = scroll order. All 1290×2796.
 
@@ -70,4 +70,4 @@ Chrome DevTools MCP, viewport `430x932x3,mobile`. Scroll `#homeScroller` to 0 �
 
 - URL: `/` → `index.html` (`start_url` is `/`)
 - Manifest name: Mercury · `apple-mobile-web-app-status-bar-style: black-translucent`
-- Icon: `icon.png` (N mark from the header, folder 21 shot `x 80–150, y 212–276`)
+- Icon: `icon.png` (folder original `New folder (9)\unnamed (1).png`, 512×512 knot on white. Replaced the N-mark crop from folder 21.)
