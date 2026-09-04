@@ -6,3 +6,4 @@ _*.png
 serve.py
 .env
 .env.*
+.railway/
