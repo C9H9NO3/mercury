@@ -1,0 +1,131 @@
+<!doctype html>
+<!-- html/body start BLACK (inline) so iOS PWA launch gaps stay invisible. -->
+<html lang="en" style="background:#000">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#10101a">
+<link rel="manifest" href="manifest.json?v=1">
+<link rel="apple-touch-icon" href="icon.png?v=1">
+<link rel="apple-touch-startup-image" media="screen and (device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="launch_1290x2796.png?v=1">
+<link rel="apple-touch-startup-image" media="screen and (device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="launch_1179x2556.png?v=1">
+<title>Mercury</title>
+<script>
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(r=>r.update());
+  navigator.serviceWorker.addEventListener('message',(e)=>{
+    if(e.data&&e.data.type==='shell-updated'&&performance.now()<1200)location.reload();
+  });
+}
+</script>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
+    scrollbar-width:none;-ms-overflow-style:none;}
+  ::-webkit-scrollbar{display:none;width:0;height:0;}
+  html{background:#10101a;-webkit-text-size-adjust:100%;}
+  body{background:#10101a;min-height:100dvh;overflow-x:hidden;
+       font-family:-apple-system,"SF Pro Text",sans-serif;touch-action:manipulation;}
+  img{-webkit-user-drag:none;}
+  #app{position:relative;min-height:100dvh;background:#10101a;overflow-x:hidden;}
+  #stage{position:relative;min-height:100dvh;background:#10101a;}
+  .screen{display:none;width:100%;background:#10101a;position:relative;}
+  .screen.active{display:block;}
+  .screen.animating{position:absolute;top:0;left:0;z-index:50;}
+  .sheet{position:relative;width:100%;}
+  .sheet > img{display:block;width:100%;height:auto;position:relative;z-index:1;}
+  .hot{position:absolute;background:transparent;z-index:5;}
+</style>
+</head>
+<body style="background:#000">
+<div id="app">
+  <div id="stage">
+
+    <div class="screen active" id="s-home">
+      <div class="sheet">
+        <img src="screens/home.png?v=1">
+        <!-- Reserved. Destinations wait for more folder shots.
+             Percents of 1290×2796 — see screens/CROP.md -->
+        <div class="hot" style="left:3%;top:7.2%;width:42%;height:4.2%"></div>
+        <div class="hot" style="left:72%;top:7.2%;width:12%;height:4.2%"></div>
+        <div class="hot" style="left:85%;top:7.2%;width:12%;height:4.2%"></div>
+        <div class="hot" style="left:0;top:49.8%;width:40%;height:4.2%"></div>
+        <div class="hot" style="left:0;top:69.6%;width:28%;height:4.5%"></div>
+        <div class="hot" style="left:0;top:75.2%;width:100%;height:6%"></div>
+        <div class="hot" style="left:0;top:81.6%;width:100%;height:5.5%"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+<script>
+  addEventListener('load', () => {
+    document.documentElement.style.background = '#10101a';
+    document.body.style.background = '#10101a';
+  });
+
+  const ASSET_V = '?v=1';
+  const el = id => document.getElementById(id);
+  let current = 's-home';
+  let navBusy = false;
+
+  function go(id, mode){
+    if (id === current || navBusy) return;
+    navBusy = true;
+    const incoming = el(id), outgoing = el(current);
+    if (!incoming){ navBusy = false; return; }
+    if (mode === 'back'){
+      window.scrollTo(0, 0);
+      incoming.classList.add('active');
+      outgoing.classList.add('animating');
+      outgoing.style.transition = 'transform .34s cubic-bezier(.3,.7,.3,1)';
+      outgoing.getBoundingClientRect();
+      outgoing.style.transform = 'translateX(100%)';
+      const doneB = () => {
+        outgoing.removeEventListener('transitionend', doneB);
+        outgoing.classList.remove('active', 'animating');
+        outgoing.style.cssText = '';
+        current = id;
+        navBusy = false;
+      };
+      outgoing.addEventListener('transitionend', doneB);
+      setTimeout(() => { if (current !== id) doneB(); }, 700);
+      return;
+    }
+    incoming.style.transition = 'none';
+    incoming.style.transform = 'translateX(100%)';
+    incoming.classList.add('active', 'animating');
+    incoming.getBoundingClientRect();
+    incoming.style.transition = 'transform .34s cubic-bezier(.3,.7,.3,1)';
+    incoming.style.transform = 'translateX(0)';
+    const done = () => {
+      incoming.removeEventListener('transitionend', done);
+      incoming.classList.remove('animating');
+      incoming.style.transition = incoming.style.transform = incoming.style.opacity = '';
+      if (outgoing !== incoming){ outgoing.classList.remove('active'); outgoing.style.cssText = ''; }
+      current = id;
+      navBusy = false;
+      window.scrollTo(0, 0);
+    };
+    incoming.addEventListener('transitionend', done);
+    setTimeout(() => { if (current !== id) done(); }, 700);
+  }
+
+  function swapAfterDecode(imgs, apply){
+    const jobs = imgs.filter(Boolean).map(i => (i.decode ? i.decode().catch(() => {}) : Promise.resolve()));
+    Promise.all(jobs).then(apply, apply);
+  }
+
+  document.addEventListener('gesturestart', e => e.preventDefault());
+  document.addEventListener('gesturechange', e => e.preventDefault());
+  let lastTouch = 0;
+  document.addEventListener('touchend', e => {
+    const now = Date.now();
+    if (now - lastTouch <= 300) e.preventDefault();
+    lastTouch = now;
+  }, { passive: false });
+</script>
+</body>
+</html>

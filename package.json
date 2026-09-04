@@ -1,0 +1,12 @@
+{
+  "name": "mercury",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Mercury phone PWA (static screenshot screens + tap hotspots).",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
