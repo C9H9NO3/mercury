@@ -8,10 +8,10 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#10101a">
-<link rel="manifest" href="manifest.json?v=1">
-<link rel="apple-touch-icon" href="icon.png?v=1">
-<link rel="apple-touch-startup-image" media="screen and (device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="launch_1290x2796.png?v=1">
-<link rel="apple-touch-startup-image" media="screen and (device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="launch_1179x2556.png?v=1">
+<link rel="manifest" href="manifest.json?v=2">
+<link rel="apple-touch-icon" href="icon.png?v=2">
+<link rel="apple-touch-startup-image" media="screen and (device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="launch_1290x2796.png?v=2">
+<link rel="apple-touch-startup-image" media="screen and (device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="launch_1179x2556.png?v=2">
 <title>Mercury</title>
 <script>
 if('serviceWorker' in navigator){
@@ -37,6 +37,17 @@ if('serviceWorker' in navigator){
   .sheet{position:relative;width:100%;}
   .sheet > img{display:block;width:100%;height:auto;position:relative;z-index:1;}
   .hot{position:absolute;background:transparent;z-index:5;}
+
+  /* Home: pinned header (org pill + icons) and pinned tab bar; only the body
+     scrolls. Inner scroller, not CSS sticky (sticky is a no-op under #app
+     overflow-x:hidden on iOS). Header PNG already carries the 177 px
+     status-bar paint - no extra safe-area padding here. */
+  #s-home.active, #s-home.animating{display:flex;flex-direction:column;height:100dvh;overflow:hidden;}
+  #homeHeader, #homeFooter{flex:0 0 auto;position:relative;z-index:10;background:#10101a;}
+  #homeHeader img, #homeFooter img, #homeContent img{display:block;width:100%;}
+  #homeScroller{flex:1 1 auto;min-height:0;overflow-x:hidden;overflow-y:auto;
+                -webkit-overflow-scrolling:touch;overscroll-behavior:contain;background:#10101a;}
+  #homeContent{position:relative;width:100%;background:#10101a;}
 </style>
 </head>
 <body style="background:#000">
@@ -44,17 +55,20 @@ if('serviceWorker' in navigator){
   <div id="stage">
 
     <div class="screen active" id="s-home">
-      <div class="sheet">
-        <img src="screens/home.png?v=1">
-        <!-- Reserved. Destinations wait for more folder shots.
-             Percents of 1290×2796 — see screens/CROP.md -->
-        <div class="hot" style="left:3%;top:7.2%;width:42%;height:4.2%"></div>
-        <div class="hot" style="left:72%;top:7.2%;width:12%;height:4.2%"></div>
-        <div class="hot" style="left:85%;top:7.2%;width:12%;height:4.2%"></div>
-        <div class="hot" style="left:0;top:49.8%;width:40%;height:4.2%"></div>
-        <div class="hot" style="left:0;top:69.6%;width:28%;height:4.5%"></div>
-        <div class="hot" style="left:0;top:75.2%;width:100%;height:6%"></div>
-        <div class="hot" style="left:0;top:81.6%;width:100%;height:5.5%"></div>
+      <div id="homeHeader">
+        <img src="screens/home_header.png?v=2">
+        <!-- org pill / terminal / profile: inert until destination shots exist -->
+      </div>
+      <div id="homeScroller">
+        <div id="homeContent">
+          <img src="screens/home_body.png?v=2">
+          <!-- Insights >, Cards >, Transactions >, Accounts > rows: inert until
+               destination shots exist. Row positions in screens/CROP.md -->
+        </div>
+      </div>
+      <div id="homeFooter">
+        <img src="screens/home_footer.png?v=2">
+        <!-- tab bar: Home is this screen; other tabs inert -->
       </div>
     </div>
 
@@ -66,7 +80,7 @@ if('serviceWorker' in navigator){
     document.body.style.background = '#10101a';
   });
 
-  const ASSET_V = '?v=1';
+  const ASSET_V = '?v=2';
   const el = id => document.getElementById(id);
   let current = 's-home';
   let navBusy = false;
