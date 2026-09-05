@@ -1,0 +1,138 @@
+<!doctype html>
+<!-- /dashboard: edit the account values shown on /test. Loads /api/values, Save -> POST /api/values.
+     Field list mirrors data/defaults.json; anything not listed here is fixed text on the screen. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#10101a">
+<meta name="robots" content="noindex">
+<title>Mercury · values</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#10101a;color:#ededf3;font:16px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;-webkit-text-size-adjust:100%}
+  body{padding:max(16px,env(safe-area-inset-top)) 16px 120px;max-width:720px;margin:0 auto}
+  header{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:8px 0 20px}
+  h1{font-size:22px;font-weight:600}
+  header a{color:#9cb4e8;text-decoration:none;font-size:14px}
+  section{background:#181826;border:1px solid #2f303e;border-radius:14px;padding:14px 14px 4px;margin-bottom:14px}
+  h2{font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:#9a9aa8;margin:0 0 10px}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+  .row.one{grid-template-columns:1fr}
+  .row.three{grid-template-columns:1fr 1fr 1fr}
+  label{display:block;font-size:12px;color:#9a9aa8;margin-bottom:4px}
+  input[type=text],input[type=number]{width:100%;background:#10101a;border:1px solid #3a3b4c;border-radius:9px;color:#ededf3;font-size:16px;padding:10px 12px;outline:none}
+  input:focus{border-color:#9cb4e8}
+  .item{border-top:1px solid #2a2b38;padding-top:12px;margin-top:4px}
+  .item:first-of-type{border-top:0;padding-top:0}
+  .item .t{font-size:12px;color:#6f7083;margin-bottom:8px}
+  .check{display:flex;align-items:center;gap:8px;font-size:14px;color:#c3c3cc;padding-top:22px}
+  .check input{width:20px;height:20px;accent-color:#9cb4e8}
+  .hint{font-size:12px;color:#6f7083;margin:-6px 0 12px}
+  footer{position:fixed;left:0;right:0;bottom:0;padding:12px 16px calc(12px + env(safe-area-inset-bottom));background:rgba(16,16,26,.92);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-top:1px solid #2f303e}
+  .bar{max-width:720px;margin:0 auto;display:flex;gap:10px;align-items:center}
+  button{border:0;border-radius:11px;padding:13px 18px;font-size:16px;font-weight:600;cursor:pointer}
+  #save{background:#9cb4e8;color:#10101a;flex:1}
+  #save:disabled{opacity:.5}
+  #reset{background:#2f303e;color:#ededf3}
+  #msg{font-size:13px;color:#77c599;min-width:70px;text-align:center}
+  #msg.err{color:#f091b3}
+</style>
+</head>
+<body>
+<header><h1>Mercury values</h1><a href="test" target="_blank" rel="noopener">open /test ↗</a></header>
+<form id="f" autocomplete="off"></form>
+<footer><div class="bar"><button type="button" id="reset">Defaults</button><button type="button" id="save">Save</button><span id="msg"></span></div></footer>
+<script>
+(() => {
+  const f = document.getElementById('f'), msg = document.getElementById('msg');
+  const KEY_LS = 'mercury-edit-key';
+  let defaults = null;
+
+  const SPEC = [
+    { title: 'Balance', hint: 'Amount: plain number, e.g. 25826.89 (formatted as $25,826 .89 on screen). The K values are shown exactly as typed.',
+      rows: [[['balance', 'Balance', 'amount'], ['range', 'Range label']], [['deltaIn', 'In (green arrow)'], ['deltaOut', 'Out (pink arrow)']]] },
+    { title: 'Insights', hint: 'Month in/out are plain numbers; the tallest bar is scaled to full height, the others relative to it.',
+      rows: [[['insights.period', 'Period label'], ['insights.net', 'Net']], [['insights.in', 'In'], ['insights.out', 'Out']]],
+      list: { path: 'insights.months', n: 3, label: i => 'Month ' + (i + 1), cols: 'three', fields: [['label', 'Label'], ['in', 'In ($)', 'number'], ['out', 'Out ($)', 'number']] } },
+    { title: 'Cards', rows: [[['moreCards', '"View N more cards"']]],
+      list: { path: 'cards', n: 6, label: i => 'Card ' + (i + 1) + (i >= 4 ? ' (navy)' : ' (white)'), fields: [['name', 'Name'], ['sub', 'Subtitle']] } },
+    { title: 'Transactions', hint: 'Amount: positive = green incoming (3161.29), negative = outgoing (-13.81). Pending greys the amount, adds the chip and makes the row taller.',
+      list: { path: 'transactions', n: 5, label: i => ['Revolut logo', 'Amazon logo', 'JE initials', 'DoorDash logo', 'Apple logo'][i],
+              fields: [['name', 'Name'], ['sub', 'Subtitle'], ['amount', 'Amount', 'amount'], ['pending', 'Pending', 'bool']] } },
+    { title: 'Accounts', rows: [[['moreAccounts', '"View N more accounts"']]],
+      list: { path: 'accounts', n: 4, label: i => 'Account ' + (i + 1), fields: [['name', 'Name'], ['sub', 'Subtitle (blank = none)'], ['amount', 'Balance', 'amount']] } },
+    { title: 'Recent recipients', list: { path: 'recipients', n: 5, label: i => 'Recipient ' + (i + 1), fields: [['name', 'Name'], ['date', '"Last paid …" date']] } },
+  ];
+
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const field = (path, label, type) => {
+    if (type === 'bool') return `<label class="check"><input type="checkbox" data-p="${path}" data-t="bool"> ${esc(label)}</label>`;
+    const t = type === 'number' ? 'number' : 'text';
+    const im = type === 'amount' || type === 'number' ? ' inputmode="decimal"' : '';
+    return `<div><label>${esc(label)}</label><input type="${t}" data-p="${path}" data-t="${type || 'text'}"${im} step="any"></div>`;
+  };
+  f.innerHTML = SPEC.map(s => {
+    let h = `<section><h2>${esc(s.title)}</h2>` + (s.hint ? `<p class="hint">${esc(s.hint)}</p>` : '');
+    (s.rows || []).forEach(r => { h += `<div class="row${r.length === 1 ? ' one' : ''}">` + r.map(x => field(...x)).join('') + '</div>'; });
+    if (s.list) for (let i = 0; i < s.list.n; i++) {
+      h += `<div class="item"><div class="t">${esc(s.list.label(i))}</div><div class="row${s.list.cols ? ' ' + s.list.cols : ''}">`
+        + s.list.fields.map(([k, l, t]) => field(`${s.list.path}.${i}.${k}`, l, t)).join('') + '</div></div>';
+    }
+    return h + '</section>';
+  }).join('');
+
+  const get = (o, p) => p.split('.').reduce((a, k) => (a == null ? a : a[k]), o);
+  const set = (o, p, v) => { const ks = p.split('.'); let c = o; ks.slice(0, -1).forEach((k, i) => { if (c[k] == null) c[k] = /^\d+$/.test(ks[i + 1]) ? [] : {}; c = c[k]; }); c[ks[ks.length - 1]] = v; };
+  const inputs = () => [...f.querySelectorAll('[data-p]')];
+  function fill(v) {
+    inputs().forEach(el => {
+      const x = get(v, el.dataset.p);
+      if (el.dataset.t === 'bool') el.checked = !!x; else el.value = x == null ? '' : String(x);
+    });
+  }
+  function collect() {
+    const v = {};
+    inputs().forEach(el => {
+      let x;
+      if (el.dataset.t === 'bool') x = el.checked;
+      else if (el.dataset.t === 'number') x = parseFloat(el.value) || 0;
+      else if (el.dataset.t === 'amount') x = el.value.replace(/[^0-9.\-]/g, '') || '0';
+      else x = el.value;
+      set(v, el.dataset.p, x);
+    });
+    return v;
+  }
+  function say(t, err) { msg.textContent = t; msg.className = err ? 'err' : ''; if (!err) setTimeout(() => { if (msg.textContent === t) msg.textContent = ''; }, 2500); }
+
+  async function load() {
+    try {
+      const [v, d] = await Promise.all([fetch('api/values', { cache: 'no-store' }).then(r => r.json()), fetch('api/defaults', { cache: 'no-store' }).then(r => r.json())]);
+      defaults = d; fill(v);
+    } catch (e) { say('Could not load values', true); }
+  }
+  async function save() {
+    const btn = document.getElementById('save'); btn.disabled = true; say('Saving…');
+    try {
+      const headers = { 'Content-Type': 'application/json' };
+      const key = localStorage.getItem(KEY_LS); if (key) headers['X-Edit-Key'] = key;
+      let r = await fetch('api/values', { method: 'POST', headers, body: JSON.stringify(collect()) });
+      if (r.status === 401) {
+        const k = prompt('Edit key'); if (k == null) { say('Not saved', true); return; }
+        localStorage.setItem(KEY_LS, k); headers['X-Edit-Key'] = k;
+        r = await fetch('api/values', { method: 'POST', headers, body: JSON.stringify(collect()) });
+      }
+      const j = await r.json();
+      if (!r.ok) throw new Error(j.error || r.status);
+      fill(j.values); say('Saved ✓');
+    } catch (e) { say('Save failed: ' + e.message, true); }
+    finally { btn.disabled = false; }
+  }
+  document.getElementById('save').addEventListener('click', save);
+  document.getElementById('reset').addEventListener('click', () => { if (defaults && confirm('Put the original screenshot values back into the form? (Save to apply.)')) fill(defaults); });
+  f.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.tagName === 'INPUT') { e.preventDefault(); save(); } });
+  load();
+})();
+</script>
+</body>
+</html>

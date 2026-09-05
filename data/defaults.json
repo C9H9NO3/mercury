@@ -1,0 +1,133 @@
+{
+  "balance": "25826.89",
+  "range": "YTD",
+  "deltaIn": "$241.6K",
+  "deltaOut": "−$344.5K",
+  "insights": {
+    "period": "Last 3 months",
+    "net": "$16.6K",
+    "in": "$39.5K",
+    "out": "−$22.9K",
+    "months": [
+      {
+        "label": "Jul",
+        "in": 18200,
+        "out": 6000
+      },
+      {
+        "label": "Aug",
+        "in": 8200,
+        "out": 16400
+      },
+      {
+        "label": "Sep",
+        "in": 13100,
+        "out": 600
+      }
+    ]
+  },
+  "cards": [
+    {
+      "name": "Roeniel Carter’s Debit Card",
+      "sub": "Virtual ••9831"
+    },
+    {
+      "name": "jazgroq",
+      "sub": "Virtual ••9087"
+    },
+    {
+      "name": "Roeniel’s Debit Card",
+      "sub": "Virtual ••1231"
+    },
+    {
+      "name": "Jaz trading",
+      "sub": "Virtual ••1074"
+    },
+    {
+      "name": "jaz trading",
+      "sub": "Virtual ••2474"
+    },
+    {
+      "name": "Jaz2027",
+      "sub": "Virtual ••4917"
+    }
+  ],
+  "moreCards": "159",
+  "transactions": [
+    {
+      "name": "Revolut",
+      "sub": "Request or Invoice Payment",
+      "amount": "3161.29",
+      "pending": false
+    },
+    {
+      "name": "Amazon",
+      "sub": "Roeniel C. ••8248",
+      "amount": "-13.81",
+      "pending": true
+    },
+    {
+      "name": "Jazmyne Ellis",
+      "sub": "Wire Payment",
+      "amount": "-300.00",
+      "pending": false
+    },
+    {
+      "name": "DoorDash",
+      "sub": "Roeniel C. ••7914",
+      "amount": "-52.39",
+      "pending": false
+    },
+    {
+      "name": "Apple",
+      "sub": "Roeniel C. ••6491",
+      "amount": "-3.02",
+      "pending": true
+    }
+  ],
+  "accounts": [
+    {
+      "name": "Credit",
+      "sub": "Credit limit: $15,000",
+      "amount": "53.33"
+    },
+    {
+      "name": "Checking ••4724",
+      "sub": "",
+      "amount": "0.00"
+    },
+    {
+      "name": "Paysight affilate",
+      "sub": "Checking ••5251",
+      "amount": "0.00"
+    },
+    {
+      "name": "Checking ••7493",
+      "sub": "",
+      "amount": "1.09"
+    }
+  ],
+  "moreAccounts": "24",
+  "recipients": [
+    {
+      "name": "Jazmyne Ellis",
+      "date": "Sep 4, 2026"
+    },
+    {
+      "name": "Sun Coast LLC",
+      "date": "Aug 12, 2026"
+    },
+    {
+      "name": "COUNT UP LLC",
+      "date": "Aug 10, 2026"
+    },
+    {
+      "name": "Sun Coast LLC",
+      "date": "Aug 10, 2026"
+    },
+    {
+      "name": "Sun Coast LLC",
+      "date": "Aug 10, 2026"
+    }
+  ]
+}

@@ -9,9 +9,9 @@ Isolated from `ig-prop-site`. Own repo, own URL. Do not copy files back into the
 - Background is `(16, 16, 26)` / `#10101a` everywhere. Paint the top **177 px** of any shot that becomes a screen top / pinned header.
 - Cut only in empty background. Never through text/icons. Never include the same row twice.
 - Paint out the iOS scroll indicator (grey `(95,95,102)`, x ≈ 1273–1282) before stitching, otherwise it repeats down the page. Rule used: grey pixel in x 1262–1290 whose 28 px to the left are all bg.
-- After any image swap: bump `?v=` everywhere in `index.html` + `manifest.json` **and** `CACHE` in `sw.js` (same number). Reopen the home-screen icon.
+- Since `v7` nothing is cached (see "No cache" below): reopening the home-screen icon always fetches the current files. Still bump `?v=` in `index.html` / `test.html` / manifests and `CACHE` in `sw.js` on a font or image change so the version trail stays readable (the fonts *are* cached, keyed on `?v=`).
 
-## Home (`#s-home`) — current: `v6`, folder `(22)` + glass chrome · icon from `New folder (9)`
+## Home (`#s-home`) — current: `v7`, folder `(22)` + glass chrome · icon from `New folder (9)`
 
 Source folder `(22)` `iCloud Photos from Roeniel Carter\IMG_1509…1512.PNG`. Filename order = scroll order. All 1290×2796.
 
@@ -65,7 +65,7 @@ Hotspots: put them on the `.glyph` boxes (org pill = `#yL`, terminal = left half
 
 Chrome DevTools MCP, viewport `430x932x3,mobile`. Scroll `#homeScroller` to 0 → frame equals `IMG_1509` (mean diff 0.4/255). ScrollTop 678.3 (2035 device px) puts the bar over the Apple row like `FullSizeRender-1.jpeg`; 720.7 / 1433.3 reproduce `IMG_1510` / `IMG_1511` tops. The Cursor embedded browser's CDP `captureScreenshot` returns garbage frames under emulation — use the Chrome one.
 
-## `/test` — DOM build of the home screen (`test.html`, `v6`)
+## `/test` — DOM build of the home screen (`test.html`, `v7`)
 
 Same screen as `/`, but no raster: every glyph, card, chart and icon is DOM/CSS/inline SVG so it can be wired up later. `/` is untouched. Everything in `test.html` is generated from the measurements below; edit numbers there, not by eye.
 
@@ -90,7 +90,21 @@ Same screen as `/`, but no raster: every glyph, card, chart and icon is DOM/CSS/
 - **Charts.** Line chart: SVG 0–1290 × 753–1268, path = per-column centre of the bright `(156,180,232)` stroke in `IMG_1509`, stroke 3.6, fill under it = vertical gradient `(29,33,73)` at 753 → bg at 1267 (measured: linear, ~0.09/px on blue). Insights bars are divs 150 u wide: in-bars Jul 1466 / Aug 1551 / Sep 1509 down to 1621, 5 u `(156,180,232)` top edge then `(26,29,59)→(20,21,40)`; out-bars from 1626 to Jul 1677 / Aug 1766 / Sep 1631, `(29,29,41)→(57,57,73)` with a 4.5 u `(195,195,204)` bottom edge; baseline 585–1233 × 1621–1626 `(76,77,98)`. Sparklines: 6 u stroke, horizontal gradient `(28,32,68)→(41,49,108)` over x 1041–1224, polylines traced from the body PNG (step shapes: vertical runs give two points).
 - **Icons** are traced outlines (OpenCV contours on an 8× upsample, 0.5 coverage, ≈0.16 px tolerance) of the original pixels: knot, 5 tab glyphs, terminal, person, N, info, caret, arrows, chevron, plus, refresh, card/list/bank/plane disc icons, merchant marks. Repeated ones (knot, plane, refresh) are `<symbol>`s. Amazon smile is `(232,172,84)` (the muted on-screen orange), Apple mark `(66,66,67)`.
 - **Startup**: same flat-bg launch images; `#s-home` fades in once `document.fonts.load()` resolves for both faces (2.5 s fallback). `manifest_test.json` (start_url `/test`) so an install from `/test` opens `/test`.
-- **Verify**: Chrome DevTools MCP, `430x932x3,mobile`, `http://<lan>:8766/test`; screenshot at `#homeScroller.scrollTop` 0 / 678.33 / 720.67 / 1433.33 / max and compare with `home_body.png` rows. Result at `v6`: every text/icon group within ±3 px in x, y and width; line chart mean diff 0.7/255, sparklines 0.9, bars 1.8, whole frame 2.1 (text anti-aliasing is the remainder). Hotspots still to be wired; the elements are ordinary DOM so they can take `onclick` directly.
+- **Verify**: Chrome DevTools MCP, `430x932x3,mobile`, `http://<lan>:8766/test`; screenshot at `#homeScroller.scrollTop` 0 / 678.33 / 720.67 / 1433.33 / max and compare with `home_body.png` rows. Result at `v6`: every text/icon group within ±3 px in x, y and width; line chart mean diff 0.7/255, sparklines 0.9, bars 1.8, whole frame 2.1 (text anti-aliasing is the remainder). Hotspots still to be wired; the elements are ordinary DOM so they can take `onclick` directly. `v7` (values + sections) renders pixel-identical to `v6` with the default values (0 differing pixels at scroll 0; the only remaining diffs are kerning across the `<span data-k>` in "View N more …").
+
+## `/dashboard` — editable values (`v7`)
+
+Account-dependent text on `/test` comes from a JSON document, not from the markup. Fixed labels ("Mercury balance", "Insights", "In"/"Out", "Create card", "View all transactions", "Last paid", logos, thumbs, sparklines, line chart) stay hard-coded.
+
+- **Storage.** `data/defaults.json` (committed; the screenshot values, written by the generator) + `values.json` in `$DATA_DIR` (Railway: persistent volume `web-volume` mounted at `/data`, `DATA_DIR=/data`; locally `.data/`, git-ignored). `GET /api/values` = defaults deep-merged with the saved file, so a field added later just shows its default. `POST /api/values` (JSON) saves. Optional `EDIT_KEY` env var → POST must carry `X-Edit-Key` (dashboard prompts once, keeps it in localStorage). Without it the endpoint is open — set it if the URL gets around.
+- **Injection.** `server.js` (and `serve.py`) replace `/*__VALUES__*/null` in `test.html` with the current JSON on every request → `window.__VALUES__`, rendered before the fade-in, so there is no second paint. If the placeholder is untouched (plain static hosting) the page fetches `api/values`; if that fails the markup's defaults stay.
+- **Bindings** in `test.html`: `data-k="path"` → `textContent`; `data-amt="path"` → `$1,234` + `.56` superscript from a plain number (`-13.81`, `3161.29`; `data-sign` rows colour green when > 0, grey when pending, white otherwise); `data-bar="insights.months.i.in|out"` → bar height = value / max(all six) × 155 u (the reference heights 155/70/112 and 51/140/5 come from defaults 18200/8200/13100 and 6000/16400/600).
+- **Sections.** `#homeContent` is split into `.sec` containers (`bal` 0–1271, `ins` 1271–1946, `cards` 1946–3618, `tx` 3618–5088, `acc` 5088–6439, `rec` 6439–7855; children use section-relative `top`). Each transaction is a `.txrow` (`data-h0` = measured height 182/251/181/181/251, `data-p0` = default Pending). Toggling Pending adds/removes 70 u on that row (disc T+2 ↔ T+36, amount `--top-a` ↔ `--top-p`, chip + "Pending" shown/hidden); the "View all" disc, `sec-tx` height, `sec-acc`/`sec-rec` tops and the content height shift by the sum. Row count is fixed (6 cards, 5 tx, 4 accounts, 5 recipients) — adding rows means the generator.
+- **UI.** `dashboard.html` is a plain form built from a spec list (same paths as the JSON). Save → POST → "Saved ✓"; Defaults button refills the form from `/api/defaults` (needs Save). The layout is absolute, so a very long name will run under the amount — that is how the real app truncates too, keep names short.
+
+## No cache (`v7`)
+
+`sw.js` no longer caches the shell: only `*.woff2` requests are served cache-first (`mercury-fonts-v7`); every other request falls through to the network, and `server.js` sends `Cache-Control: no-store` for everything except the fonts (`immutable`, one year). Consequence: edits at `/dashboard` are visible on the next open of the installed app, no reinstall; offline opens show the browser error page (accepted). Activating the new worker deletes the old `mercury-v*` caches. The `shell-updated` reload listener in `index.html` is inert now.
 
 ## History
 
@@ -99,6 +113,6 @@ Same screen as `/`, but no raster: every glyph, card, chart and icon is DOM/CSS/
 
 ## PWA
 
-- URL: `/` → `index.html` (`start_url` is `/`) · `/test` → `test.html` (DOM build, `manifest_test.json`, `start_url` `/test`)
+- URL: `/` → `index.html` (`start_url` is `/`) · `/test` → `test.html` (DOM build, `manifest_test.json`, `start_url` `/test`) · `/dashboard` → `dashboard.html` (value editor) · `/api/values`, `/api/defaults`
 - Manifest name: Mercury · `apple-mobile-web-app-status-bar-style: black-translucent`
 - Icon: `icon.png` (folder original `New folder (9)\unnamed (1).png`, 512×512 knot on white. Replaced the N-mark crop from folder 21.)

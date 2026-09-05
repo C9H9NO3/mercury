@@ -4,6 +4,7 @@ node_modules/
 _clean/
 _*.png
 serve.py
+.data/
 .env
 .env.*
 .railway/
