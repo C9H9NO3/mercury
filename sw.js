@@ -1,5 +1,5 @@
 // Stale-while-revalidate. Bump CACHE on every image change (same number as ?v=).
-const CACHE = 'mercury-v4';
+const CACHE = 'mercury-v5';
 
 self.addEventListener('install', () => self.skipWaiting());
 

@@ -11,7 +11,7 @@ Isolated from `ig-prop-site`. Own repo, own URL. Do not copy files back into the
 - Paint out the iOS scroll indicator (grey `(95,95,102)`, x ≈ 1273–1282) before stitching, otherwise it repeats down the page. Rule used: grey pixel in x 1262–1290 whose 28 px to the left are all bg.
 - After any image swap: bump `?v=` everywhere in `index.html` + `manifest.json` **and** `CACHE` in `sw.js` (same number). Reopen the home-screen icon.
 
-## Home (`#s-home`) — current: `v4`, folder `(22)` + glass chrome · icon from `New folder (9)`
+## Home (`#s-home`) — current: `v5`, folder `(22)` + glass chrome · icon from `New folder (9)`
 
 Source folder `(22)` `iCloud Photos from Roeniel Carter\IMG_1509…1512.PNG`. Filename order = scroll order. All 1290×2796.
 
@@ -45,7 +45,11 @@ Glass: `--gfill: rgba(33.5,33.5,47.3,.8)` (so fill over bg = (30,30,43)), `--gbl
    - Later shots start below their own pinned pills (≥ 309) so no chrome is duplicated. Scroll indicator painted out first.
    - Row pitch in lists is **181 px**. Shot-to-shot offsets: 1509→1510 = **2162**, 1510→1511 = **2138**, 1511→1512 = **759**.
 2. `pill_left.png`, `pill_right.png`, `tabbar.png` — RGBA glyph layers cut at the bboxes above. Made by un-blending each pixel against the flat fill `(30,30,43)` with minimum alpha: `a = max_c (P−F)/(255−F)`, `C = F + (P−F)/a`. Pixels equal to the fill or darker (bg outside the capsule) go fully transparent, so the CSS capsule supplies fill, blur and the anti-aliased edge; the PNG supplies text, icons, the N badge, the edge ring and the home highlight.
-3. Launch images = `IMG_1509` with top 177 px painted and the scroll indicator cleared (`launch_1290x2796.png`, scaled copy `launch_1179x2556.png`) — identical to the scroll-0 frame.
+3. Launch images are **flat bg** `(16,16,26)` (`launch_1290x2796.png`, `launch_1179x2556.png`). `#s-home` starts at `opacity:0` and gets `.ready` (0.3 s fade) once body + pills + tab bar have `decode()`d (2.5 s fallback). Startup is therefore flat colour → one fade-in. Do not put a content launch image back: iOS crossfades it into the page before the body PNG has painted, which reads as a flash (folder recording `ScreenRecording_09-04-2026 20-07-36_1.mov`, frames 1.0–1.3 s).
+
+### Viewport height (installed app)
+
+Home-screen web apps with `black-translucent` report `100dvh` / `innerHeight` ~59 pt short on cold start (WebKit bug 254868) — the tab bar sat 80 pt above the screen bottom with a dead band under it. `--vh` is `100dvh` in Safari and `100vh` under `@media (display-mode: standalone)`; every full-height box uses `var(--vh)`. Touch events may still ignore that bottom 59 pt band in standalone (same bug), so keep tab-bar hotspots on the upper part of the bar when they get wired.
 
 ### Body landmarks (rows of `home_body.png` v3; subtract 370 for the v2 numbers)
 

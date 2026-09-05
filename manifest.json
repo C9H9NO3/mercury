@@ -7,6 +7,6 @@
   "theme_color": "#10101a",
   "start_url": "/",
   "icons": [
-    { "src": "icon.png?v=4", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+    { "src": "icon.png?v=5", "sizes": "512x512", "type": "image/png", "purpose": "any" }
   ]
 }

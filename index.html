@@ -1,6 +1,6 @@
 <!doctype html>
-<!-- html/body start BLACK (inline) so iOS PWA launch gaps stay invisible. -->
-<html lang="en" style="background:#000">
+<!-- html/body start in the app bg (inline) so the launch -> page crossfade is bg -> bg. -->
+<html lang="en" style="background:#10101a">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover">
@@ -8,10 +8,10 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#10101a">
-<link rel="manifest" href="manifest.json?v=4">
-<link rel="apple-touch-icon" href="icon.png?v=4">
-<link rel="apple-touch-startup-image" media="screen and (device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="launch_1290x2796.png?v=4">
-<link rel="apple-touch-startup-image" media="screen and (device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="launch_1179x2556.png?v=4">
+<link rel="manifest" href="manifest.json?v=5">
+<link rel="apple-touch-icon" href="icon.png?v=5">
+<link rel="apple-touch-startup-image" media="screen and (device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="launch_1290x2796.png?v=5">
+<link rel="apple-touch-startup-image" media="screen and (device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)" href="launch_1179x2556.png?v=5">
 <title>Mercury</title>
 <script>
 if('serviceWorker' in navigator){
@@ -25,12 +25,17 @@ if('serviceWorker' in navigator){
   *{margin:0;padding:0;box-sizing:border-box;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
     scrollbar-width:none;-ms-overflow-style:none;}
   ::-webkit-scrollbar{display:none;width:0;height:0;}
+  /* Viewport height. Installed (standalone) iOS web apps with black-translucent report
+     100dvh / innerHeight ~59pt short on cold start (WebKit bug 254868) -> 59pt dead band
+     under the tab bar. 100vh fills the real screen there. In Safari keep dvh. */
+  :root{--vh:100dvh;}
+  @media (display-mode:standalone){:root{--vh:100vh;}}
   html{background:#10101a;-webkit-text-size-adjust:100%;}
-  body{background:#10101a;min-height:100dvh;overflow-x:hidden;
+  body{background:#10101a;min-height:var(--vh);overflow-x:hidden;
        font-family:-apple-system,"SF Pro Text",sans-serif;touch-action:manipulation;}
   img{-webkit-user-drag:none;}
-  #app{position:relative;min-height:100dvh;background:#10101a;overflow-x:hidden;}
-  #stage{position:relative;min-height:100dvh;background:#10101a;}
+  #app{position:relative;min-height:var(--vh);background:#10101a;overflow-x:hidden;}
+  #stage{position:relative;min-height:var(--vh);background:#10101a;}
   .screen{display:none;width:100%;background:#10101a;position:relative;}
   .screen.active{display:block;}
   .screen.animating{position:absolute;top:0;left:0;z-index:50;}
@@ -43,7 +48,11 @@ if('serviceWorker' in navigator){
      (backdrop blur + dark tint) with their glyphs as alpha PNGs on top.
      Body PNG carries the 177 px status-bar paint at scroll 0; nothing else
      is opaque, so content passes under the clock, the pills and the bar. */
-  #s-home.active, #s-home.animating{display:block;position:relative;height:100dvh;overflow:hidden;}
+  #s-home.active, #s-home.animating{display:block;position:relative;height:var(--vh);overflow:hidden;}
+  /* Startup: launch image is flat bg, page stays flat bg (opacity 0) until every home PNG
+     has decoded, then the whole screen fades in once. No partial paint, no flash. */
+  #s-home{opacity:0;transition:opacity .3s ease-out;}
+  #s-home.ready{opacity:1;}
   #homeScroller{position:absolute;inset:0;overflow-x:hidden;overflow-y:auto;
                 -webkit-overflow-scrolling:touch;overscroll-behavior:contain;background:#10101a;}
   #homeContent{position:relative;width:100%;background:#10101a;}
@@ -72,34 +81,29 @@ if('serviceWorker' in navigator){
   #s-home.noglass .glass{-webkit-backdrop-filter:none;backdrop-filter:none;background:#1e1e2b;}
 </style>
 </head>
-<body style="background:#000">
+<body style="background:#10101a">
 <div id="app">
   <div id="stage">
 
     <div class="screen active" id="s-home">
       <div id="homeScroller">
         <div id="homeContent">
-          <img src="screens/home_body.png?v=4">
+          <img src="screens/home_body.png?v=5">
           <!-- Insights >, Cards >, Transactions >, Accounts > rows: inert until
                destination shots exist. Row positions in screens/CROP.md -->
         </div>
       </div>
       <div id="homeTopFade"></div><div id="homeBotFade"></div>
       <!-- floating chrome: org pill / icon pill / tab bar. Inert until destination shots exist. -->
-      <div class="glass" id="gL"></div><img class="glyph" id="yL" src="screens/pill_left.png?v=4" alt="">
-      <div class="glass" id="gR"></div><img class="glyph" id="yR" src="screens/pill_right.png?v=4" alt="">
-      <div class="glass" id="gB"></div><img class="glyph" id="yB" src="screens/tabbar.png?v=4" alt="">
+      <div class="glass" id="gL"></div><img class="glyph" id="yL" src="screens/pill_left.png?v=5" alt="">
+      <div class="glass" id="gR"></div><img class="glyph" id="yR" src="screens/pill_right.png?v=5" alt="">
+      <div class="glass" id="gB"></div><img class="glyph" id="yB" src="screens/tabbar.png?v=5" alt="">
     </div>
 
   </div>
 </div>
 <script>
-  addEventListener('load', () => {
-    document.documentElement.style.background = '#10101a';
-    document.body.style.background = '#10101a';
-  });
-
-  const ASSET_V = '?v=4';
+  const ASSET_V = '?v=5';
   const el = id => document.getElementById(id);
   let current = 's-home';
   let navBusy = false;
@@ -150,6 +154,19 @@ if('serviceWorker' in navigator){
     const jobs = imgs.filter(Boolean).map(i => (i.decode ? i.decode().catch(() => {}) : Promise.resolve()));
     Promise.all(jobs).then(apply, apply);
   }
+
+  // First paint: hold flat bg until body + pills + tab bar are decoded, then fade in once.
+  (() => {
+    const home = el('s-home');
+    let shown = false;
+    const show = () => {
+      if (shown) return;
+      shown = true;
+      requestAnimationFrame(() => home.classList.add('ready'));
+    };
+    swapAfterDecode(Array.from(home.querySelectorAll('img')), show);
+    setTimeout(show, 2500); // never stay blank if decode() hangs
+  })();
 
   document.addEventListener('gesturestart', e => e.preventDefault());
   document.addEventListener('gesturechange', e => e.preventDefault());
