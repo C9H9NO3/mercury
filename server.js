@@ -14,12 +14,15 @@ const TYPES = {
   ".jpeg": "image/jpeg",
   ".json": "application/json",
   ".ico": "image/x-icon",
+  ".woff2": "font/woff2",
 };
+// Pretty URLs. "/" is the screenshot build, "/test" the hard-coded DOM build.
+const ROUTES = { "/": "/index.html", "/test": "/test.html" };
 
 http
   .createServer((req, res) => {
     let urlPath = decodeURIComponent(req.url.split("?")[0]);
-    if (urlPath === "/") urlPath = "/index.html";
+    if (ROUTES[urlPath]) urlPath = ROUTES[urlPath];
     const safe = path.normalize(urlPath).replace(/^([/\\.]+)/, "");
     const filePath = path.join(ROOT, safe);
     if (!filePath.startsWith(ROOT)) {

@@ -11,7 +11,7 @@ Isolated from `ig-prop-site`. Own repo, own URL. Do not copy files back into the
 - Paint out the iOS scroll indicator (grey `(95,95,102)`, x ≈ 1273–1282) before stitching, otherwise it repeats down the page. Rule used: grey pixel in x 1262–1290 whose 28 px to the left are all bg.
 - After any image swap: bump `?v=` everywhere in `index.html` + `manifest.json` **and** `CACHE` in `sw.js` (same number). Reopen the home-screen icon.
 
-## Home (`#s-home`) — current: `v5`, folder `(22)` + glass chrome · icon from `New folder (9)`
+## Home (`#s-home`) — current: `v6`, folder `(22)` + glass chrome · icon from `New folder (9)`
 
 Source folder `(22)` `iCloud Photos from Roeniel Carter\IMG_1509…1512.PNG`. Filename order = scroll order. All 1290×2796.
 
@@ -65,6 +65,33 @@ Hotspots: put them on the `.glyph` boxes (org pill = `#yL`, terminal = left half
 
 Chrome DevTools MCP, viewport `430x932x3,mobile`. Scroll `#homeScroller` to 0 → frame equals `IMG_1509` (mean diff 0.4/255). ScrollTop 678.3 (2035 device px) puts the bar over the Apple row like `FullSizeRender-1.jpeg`; 720.7 / 1433.3 reproduce `IMG_1510` / `IMG_1511` tops. The Cursor embedded browser's CDP `captureScreenshot` returns garbage frames under emulation — use the Chrome one.
 
+## `/test` — DOM build of the home screen (`test.html`, `v6`)
+
+Same screen as `/`, but no raster: every glyph, card, chart and icon is DOM/CSS/inline SVG so it can be wired up later. `/` is untouched. Everything in `test.html` is generated from the measurements below; edit numbers there, not by eye.
+
+- **Unit.** 1 u = 1 px of the 1290-wide originals = `100/1290 vw` (emitted as `vw` with 4 decimals). Boxes are `position:absolute` at the screenshot pixel coordinates; `#homeContent` is 7855 u tall (same as `home_body.png`, scroll range 5059 px). The fades, `.glass` capsules and their boxes are byte-identical to `index.html`; only the glyph layers changed from PNG to `.glyphs` containers (which also carry the 3 u edge ring as inset box-shadows: `(65,65,97)`, `(56,56,82)`, `(46,46,67)`).
+- **Fonts** (`fonts/`): Mercury's own variable webfonts, self-hosted (`arcadia-text.woff2` wght 340–500, `arcadia-display.woff2` wght 300–500; from `mercury.com/_next/static/media/…`). Metrics: upm 2048, ascent 1946, descent 492, cap 1442 (0.704 em), x 1027, digits 1488. With `line-height:1` the baseline sits 0.855 em below the box top, so `top = baseline − 0.855·fs (+ per-class nudge: h −0.7, b +2.0, s +2.7, n +1.0 u)`.
+- **Type ramp** (measured cap heights → size; family/weight fitted on width and stem thickness in Chrome):
+
+| use | family / weight | size | colour | notes |
+|---|---|---|---|---|
+| section headings, "Recent recipients" | Display 460 | 60 u | `(237,237,243)` | left 60 u; chevron 23×42 at heading top+2, text right +32 |
+| balance | Display 370 | 90 u | white | `.89` superscript 49 u, weight 500, tabular, digit tops aligned |
+| amounts (`$16.6K`, account balances) | Display 370 | 60 u | white / green `(119,197,153)` | superscript 34 u; transaction amounts add `tabular-nums` (wide 1s) and are right-aligned to x 1230; pending rows grey |
+| row titles, "View …", labels | Text 360 | 51 u | white | title cap-top = row top, baseline +36 |
+| subtitles | Text 360 | 45 u | `(195,195,204)` | `••` are two bullets, no space; baseline row+99 (cards/tx), +93 (accounts/recipients) |
+| YTD / deltas | Text 360 | 45 u | white | pink `(240,145,179)` |
+| month labels | Text 360 | 39 u | grey | centred under each bar |
+| Pending chip | Text 360 | 39 u | white on `(47,48,62)` 182×65 r33 | text origin x 209 |
+| Create card | Text 480 | 48 u | `(156,180,232)` on `(44,48,67)` 393×114 | plus glyph at (103,3447) |
+| org pill | Text 480 | 51 u | `(251,251,255)` | origin x 127 inside the pill; N badge 66×66 r14 `(74,102,133)` + 2 u `(102,123,153)` inset |
+
+- **Rows** (body rows, cap-top of the title): dividers 3 u `(47,48,62)` at 1271 / 1946 / 3618 / 5088 / 6439. Cards 2182 + 181·i (thumb 96×78 r14 at row+11, white `(254→247)` or navy `(81,79,127)→(55,54,82)` gradient, 20×17 inner rect). Transactions 3854 / 4036 / 4287 / 4468 / 4649 (96 u discs: Revolut `(67,84,116)`, Amazon `(33,31,32)`, JE `(53,91,108)`, DoorDash `(199,48,29)`, Apple white). Accounts 5324 / 5583 / 5788 / 6047 (knot centred on the row; amount left 204). Recipients 6674 + 175·i (refresh glyph at 1176, row+25). "View …" discs `(47,48,62)` at 3258 / 4890 / 6241.
+- **Charts.** Line chart: SVG 0–1290 × 753–1268, path = per-column centre of the bright `(156,180,232)` stroke in `IMG_1509`, stroke 3.6, fill under it = vertical gradient `(29,33,73)` at 753 → bg at 1267 (measured: linear, ~0.09/px on blue). Insights bars are divs 150 u wide: in-bars Jul 1466 / Aug 1551 / Sep 1509 down to 1621, 5 u `(156,180,232)` top edge then `(26,29,59)→(20,21,40)`; out-bars from 1626 to Jul 1677 / Aug 1766 / Sep 1631, `(29,29,41)→(57,57,73)` with a 4.5 u `(195,195,204)` bottom edge; baseline 585–1233 × 1621–1626 `(76,77,98)`. Sparklines: 6 u stroke, horizontal gradient `(28,32,68)→(41,49,108)` over x 1041–1224, polylines traced from the body PNG (step shapes: vertical runs give two points).
+- **Icons** are traced outlines (OpenCV contours on an 8× upsample, 0.5 coverage, ≈0.16 px tolerance) of the original pixels: knot, 5 tab glyphs, terminal, person, N, info, caret, arrows, chevron, plus, refresh, card/list/bank/plane disc icons, merchant marks. Repeated ones (knot, plane, refresh) are `<symbol>`s. Amazon smile is `(232,172,84)` (the muted on-screen orange), Apple mark `(66,66,67)`.
+- **Startup**: same flat-bg launch images; `#s-home` fades in once `document.fonts.load()` resolves for both faces (2.5 s fallback). `manifest_test.json` (start_url `/test`) so an install from `/test` opens `/test`.
+- **Verify**: Chrome DevTools MCP, `430x932x3,mobile`, `http://<lan>:8766/test`; screenshot at `#homeScroller.scrollTop` 0 / 678.33 / 720.67 / 1433.33 / max and compare with `home_body.png` rows. Result at `v6`: every text/icon group within ±3 px in x, y and width; line chart mean diff 0.7/255, sparklines 0.9, bars 1.8, whole frame 2.1 (text anti-aliasing is the remainder). Hotspots still to be wired; the elements are ordinary DOM so they can take `onclick` directly.
+
 ## History
 
 - `v1` folder `(21)` `IMG_1507.PNG`: single full-frame shot ("Welcome, Roeniel" variant), top 177 px painted. Replaced by the folder (22) stitch.
@@ -72,6 +99,6 @@ Chrome DevTools MCP, viewport `430x932x3,mobile`. Scroll `#homeScroller` to 0 �
 
 ## PWA
 
-- URL: `/` → `index.html` (`start_url` is `/`)
+- URL: `/` → `index.html` (`start_url` is `/`) · `/test` → `test.html` (DOM build, `manifest_test.json`, `start_url` `/test`)
 - Manifest name: Mercury · `apple-mobile-web-app-status-bar-style: black-translucent`
 - Icon: `icon.png` (folder original `New folder (9)\unnamed (1).png`, 512×512 knot on white. Replaced the N-mark crop from folder 21.)
